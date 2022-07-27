@@ -82,4 +82,23 @@ function playGame(rounds) {
     }
 }
 
-playGame(5);
+// Handle button click
+function handleClick(e) {
+    let choice = this.getAttribute("data-choice");
+    console.log(choice);
+    this.classList.add("highlight");
+}
+
+// Handle transition end for momentary highlight effects
+function reverseHighlight(e) {
+    if (this.classList.contains("highlight")) {
+        this.classList.remove("highlight");
+    }
+    if (this.classList.contains("text-highlight")) {
+        this.classList.remove("text-highlight");
+    }
+}
+
+const buttons = document.querySelectorAll("button.game-button");
+buttons.forEach(button => button.addEventListener("click", handleClick));
+buttons.forEach(button => button.addEventListener("transitionend", reverseHighlight));
