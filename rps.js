@@ -8,6 +8,30 @@ const WINS = {
     "scissors": "paper"
 }
 
+// Configuration
+const ROUNDS = 5;
+
+// Variables for tracking the game progress
+let currentRound = 1;
+let playerScore = 0;
+let aiScore = 0;
+
+// Find the necessary elements
+const statusDiv = document.querySelector("div.status");
+const scoreContainer = document.querySelector("div.score-container");
+const playerScoreDiv = document.querySelector("div.player-score");
+const aiScoreDiv = document.querySelector("div.ai-score")
+const buttons = document.querySelectorAll("button.game-button");
+const scoreDivs = document.querySelectorAll(".score-container>div")
+
+// Update the innerText of an element and highlight it
+function updateText(element, value, highlight = true) {
+    element.innerText = value;
+    if (highlight) {
+        element.classList.add("text-highlight");
+    }
+}
+
 // Evaluate result
 // Returns 1 if player wins, 0 if tie, -1 if AI wins
 function getResult(playerChoice, aiChoice) {
@@ -30,63 +54,66 @@ function getResult(playerChoice, aiChoice) {
 // Pick a random option
 const chooseRandom = () => CHOICES[Math.round(Math.random()*(CHOICES.length-1))];
 
+// End and reset the game
+function restart() {
+    currentRound = null;
+    scoreContainer.classList.add("idle");
+    buttons.forEach(button => button.classList.add("idle"));
+    if (playerScore > aiScore) {
+        updateText(statusDiv, "You won!");
+    } else if (aiScore > playerScore) {
+        updateText(statusDiv, "You lost!");
+    } else {
+        updateText(statusDiv, "It's a tie!");
+    }
+    setTimeout(() => {
+        scoreContainer.classList.remove("idle");
+        buttons.forEach(button => button.classList.remove("idle"));
+        playerScore = 0;
+        aiScore = 0;
+        updateText(playerScoreDiv, playerScore);
+        updateText(aiScoreDiv, aiScore);
+        currentRound = 1;
+        updateText(statusDiv, `Round ${currentRound}`)
+    }, 5000);
+}
+
 // Play a single game
-function playRound() {
-    let input = prompt("Your choice: ").toLowerCase();
-    if (CHOICES.indexOf(input) < 0) return;
+function playRound(choice) {
+    if (CHOICES.indexOf(choice) < 0) throw Error("Invalid choice");
     
     let aiChoice = chooseRandom();
-    let result = getResult(input, aiChoice);
+    let result = getResult(choice, aiChoice);
 
     switch (result) {
         case 1:
-            console.log(`${input} beats ${aiChoice}. You win!`);
+            playerScore++;
+            updateText(playerScoreDiv, playerScore);
             break;
         case -1:
-            console.log(`${aiChoice} beats ${input}. You lose!`);
+            aiScore++;
+            updateText(aiScoreDiv, aiScore);
             break;
         default:
-            console.log("It's a tie!");
+            updateText(playerScoreDiv, playerScore);
+            updateText(aiScoreDiv, aiScore);
             break;
     }
 
-    return result;
-}
-
-// Play multiple rounds
-function playGame(rounds) {
-    let playerScore = 0;
-    let aiScore = 0;
-
-    for (let i = 0; i < rounds; i++) {
-        console.log(`Round ${i+1}/${rounds}`);
-        let result = playRound();
-        switch (result) {
-            case 1:
-                playerScore++;
-                break;
-            case -1:
-                aiScore++;
-                break;
-        }
-    }
-
-    console.log(`Final score: ${playerScore} - ${aiScore}`);
-
-    if (playerScore > aiScore) {
-        console.log("You won!");
-    } else if (playerScore < aiScore) {
-        console.log("You lost!");
+    if (currentRound >= ROUNDS) {
+        restart();
     } else {
-        console.log("It's a tie!");
+        currentRound++;
+        updateText(statusDiv, `Round ${currentRound}`)
     }
 }
 
 // Handle button click
 function handleClick(e) {
+    if (currentRound == null) return;
     let choice = this.getAttribute("data-choice");
-    console.log(choice);
     this.classList.add("highlight");
+    playRound(choice);
 }
 
 // Handle transition end for momentary highlight effects
@@ -99,6 +126,7 @@ function reverseHighlight(e) {
     }
 }
 
-const buttons = document.querySelectorAll("button.game-button");
 buttons.forEach(button => button.addEventListener("click", handleClick));
 buttons.forEach(button => button.addEventListener("transitionend", reverseHighlight));
+scoreDivs.forEach(div => div.addEventListener("transitionend", reverseHighlight));
+statusDiv.addEventListener("transitionend", reverseHighlight);
