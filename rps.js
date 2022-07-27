@@ -28,11 +28,7 @@ function getResult(playerChoice, aiChoice) {
 }
 
 // Pick a random option
-function chooseRandom() {
-    console.log("a")
-    let choice = CHOICES[Math.round(Math.random()*(CHOICES.length-1))];
-    return choice;
-}
+const chooseRandom = () => CHOICES[Math.round(Math.random()*(CHOICES.length-1))];
 
 // Play a single game
 function playRound() {
@@ -40,8 +36,9 @@ function playRound() {
     if (CHOICES.indexOf(input) < 0) return;
     
     let aiChoice = chooseRandom();
+    let result = getResult(input, aiChoice);
 
-    switch (getResult(input, aiChoice)) {
+    switch (result) {
         case 1:
             console.log(`${input} beats ${aiChoice}. You win!`);
             break;
@@ -52,6 +49,37 @@ function playRound() {
             console.log("It's a tie!");
             break;
     }
+
+    return result;
 }
 
-playRound()
+// Play multiple rounds
+function playGame(rounds) {
+    let playerScore = 0;
+    let aiScore = 0;
+
+    for (let i = 0; i < rounds; i++) {
+        console.log(`Round ${i+1}/${rounds}`);
+        let result = playRound();
+        switch (result) {
+            case 1:
+                playerScore++;
+                break;
+            case -1:
+                aiScore++;
+                break;
+        }
+    }
+
+    console.log(`Final score: ${playerScore} - ${aiScore}`);
+
+    if (playerScore > aiScore) {
+        console.log("You won!");
+    } else if (playerScore < aiScore) {
+        console.log("You lost!");
+    } else {
+        console.log("It's a tie!");
+    }
+}
+
+playGame(5);
